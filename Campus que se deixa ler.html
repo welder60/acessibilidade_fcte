@@ -1,0 +1,764 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Campus que se deixa ler</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@500;700&display=swap">
+<style>
+/* Layout: uma coluna de leitura larga (mapa) sobre duas colunas (pontos | rota); as placas em grade imprimível.
+   Vocabulário do mapa tátil: azul-marinho dos edifícios do mapa oficial da FGA, amarelo do piso tátil como acento. */
+:root {
+  --bg: #f6f4ee;          /* papel claro, levemente quente */
+  --fg: #16213a;
+  --muted: #4f5a72;
+  --surface: #ffffff;
+  --line: #c9cfdc;
+  --edificio: #1f3b6e;    /* azul do mapa da FGA */
+  --edificio-fg: #ffffff;
+  --acento: #f2b705;      /* amarelo do piso tátil */
+  --acento-fg: #16213a;
+  --terreno: #e6e9ef;
+  --via: #9aa3b5;
+  --foco: #1f3b6e;
+  --fonte-texto: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --fonte-titulo: "Lexend", "Atkinson Hyperlegible", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1626; --fg: #f1f3f8; --muted: #b3bccf; --surface: #1a2338; --line: #39455f;
+    --edificio: #8fb0e8; --edificio-fg: #0f1626; --acento: #ffcc33; --acento-fg: #0f1626;
+    --terreno: #222c44; --via: #5d6a88; --foco: #ffcc33; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1626; --fg: #f1f3f8; --muted: #b3bccf; --surface: #1a2338; --line: #39455f;
+  --edificio: #8fb0e8; --edificio-fg: #0f1626; --acento: #ffcc33; --acento-fg: #0f1626;
+  --terreno: #222c44; --via: #5d6a88; --foco: #ffcc33; color-scheme: dark;
+}
+/* Modo de alto contraste (escolha do usuário na página; vale nos dois temas) */
+:root[data-contraste="alto"] {
+  --bg: #000000; --fg: #ffffff; --muted: #ffffff; --surface: #000000; --line: #ffffff;
+  --edificio: #ffffff; --edificio-fg: #000000; --acento: #ffe600; --acento-fg: #000000;
+  --terreno: #000000; --via: #ffffff; --foco: #ffe600; color-scheme: dark;
+}
+:root[data-fonte="2"] { font-size: 125%; }
+:root[data-fonte="3"] { font-size: 150%; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--fonte-texto); font-size: 1.0625rem; line-height: 1.6;
+  margin: 0;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--edificio); }
+h1, h2, h3 { font-family: var(--fonte-titulo); line-height: 1.2; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--foco); outline-offset: 3px; }
+.skip { position: absolute; left: -999px; top: 0; background: var(--acento); color: var(--acento-fg); padding: .5rem 1rem; z-index: 20; font-weight: 700; }
+.skip:focus { left: max(16px, env(safe-area-inset-left, 0px)); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Cabeçalho */
+.topo { background: var(--edificio); color: var(--edificio-fg); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; }
+.topo-in {
+  max-width: 1100px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: .75rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.5rem;
+}
+.marca { display: flex; align-items: center; gap: .75rem; text-decoration: none; min-width: 0; }
+.marca-icone { width: 2.5rem; height: 2.5rem; flex: none; }
+.marca h1 { font-size: 1.1rem; }
+.marca small { display: block; font-family: var(--fonte-texto); font-weight: 400; font-size: .85rem; opacity: .9; }
+.nav { display: flex; flex-wrap: wrap; gap: .25rem; margin-left: auto; }
+.nav a { text-decoration: none; padding: .45rem .8rem; border-radius: .4rem; font-weight: 700; border: 2px solid transparent; }
+.nav a[aria-current="page"] { background: var(--acento); color: var(--acento-fg); }
+.nav a:hover { border-color: currentColor; }
+.ajustes { display: flex; gap: .35rem; flex-wrap: wrap; }
+.ajustes button {
+  font: inherit; font-weight: 700; cursor: pointer;
+  background: transparent; color: inherit; border: 2px solid currentColor; border-radius: .4rem; padding: .35rem .65rem; min-width: 2.6rem;
+}
+.ajustes button[aria-pressed="true"] { background: var(--acento); color: var(--acento-fg); border-color: var(--acento); }
+
+/* Conteúdo */
+main {
+  max-width: 1100px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 1.5rem 3rem;
+}
+.vista { display: grid; gap: 1.5rem; }
+.faixa-aqui {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem;
+  border: 3px solid var(--acento); border-radius: .6rem; padding: .9rem 1.1rem; background: var(--surface);
+}
+.faixa-aqui .pino { width: 2.2rem; height: 2.2rem; flex: none; }
+.faixa-aqui .texto { min-width: 0; flex: 1 1 16rem; }
+.faixa-aqui .campo { min-width: 0; flex: 1 1 14rem; }
+.faixa-aqui select { width: 100%; }
+.vista, .duas > * { min-width: 0; }
+.faixa-aqui .rotulo { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.faixa-aqui strong { font-family: var(--fonte-titulo); font-size: 1.35rem; display: block; }
+.faixa-aqui select, .rota select {
+  font: inherit; padding: .5rem .7rem; border: 2px solid var(--line); border-radius: .4rem; background: var(--surface); color: var(--fg); max-width: 100%;
+}
+.btn {
+  font: inherit; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--edificio); color: var(--edificio-fg); border: 2px solid var(--edificio); border-radius: .45rem; padding: .55rem 1rem;
+}
+.btn.sec { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn svg { width: 1.2em; height: 1.2em; }
+.btn[aria-pressed="true"] { background: var(--acento); color: var(--acento-fg); border-color: var(--acento); }
+.btn:disabled { opacity: .5; cursor: default; }
+
+/* Mapa */
+.mapa-caixa { background: var(--surface); border: 1px solid var(--line); border-radius: .6rem; overflow: hidden; }
+.mapa-caixa svg { display: block; width: 100%; height: auto; max-height: 72vh; }
+.mapa-legenda { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; padding: .7rem 1rem; border-top: 1px solid var(--line); font-size: .9rem; color: var(--muted); }
+.mapa-legenda span { display: inline-flex; align-items: center; gap: .4rem; }
+.mapa-legenda i { display: inline-block; width: 1rem; height: .7rem; border-radius: 2px; }
+.ed { fill: var(--edificio); stroke: var(--edificio); stroke-width: 1.5; stroke-linejoin: round; cursor: pointer; transition: opacity .15s; }
+.ed:hover { opacity: .8; }
+.ed.destino { stroke: var(--acento); stroke-width: 7; }
+.terreno { fill: var(--terreno); stroke: var(--via); stroke-width: 1.5; }
+.via { fill: none; stroke: var(--via); stroke-linecap: round; stroke-linejoin: round; }
+.calcada { fill: none; stroke: var(--acento); stroke-width: 5; stroke-dasharray: 8 7; stroke-linecap: round; stroke-linejoin: round; }
+.rotulo-mapa { font-family: var(--fonte-texto); font-weight: 700; fill: var(--fg); font-size: 15px; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+.rotulo-mapa.sigla { font-size: 20px; font-family: var(--fonte-titulo); }
+.rotulo-via { font-family: var(--fonte-texto); fill: var(--muted); font-size: 13px; letter-spacing: .05em; }
+.ed-area { fill: transparent; stroke: none; cursor: pointer; }
+.ed-area.destino { stroke: var(--acento); stroke-width: 7; }
+.pino-mapa .anel { fill: none; stroke: var(--acento); stroke-width: 4; transform-origin: center; transform-box: fill-box; }
+@media (prefers-reduced-motion: no-preference) {
+  .pino-mapa .anel { animation: pulso 1.8s ease-out infinite; }
+  @keyframes pulso { 0% { transform: scale(.6); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+}
+.pino-mapa .ponto { fill: var(--acento); stroke: var(--fg); stroke-width: 3; }
+.pino-mapa text { font-family: var(--fonte-titulo); font-weight: 700; font-size: 16px; fill: var(--fg); paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+
+/* Pontos e rota */
+.duas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1.5rem; }
+@media (max-width: 760px) { .duas { grid-template-columns: minmax(0, 1fr); } }
+.bloco h2 { font-size: 1.25rem; margin-bottom: .75rem; }
+.lista-pontos { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.lista-pontos button {
+  width: 100%; text-align: left; font: inherit; cursor: pointer; display: grid; grid-template-columns: 3.6rem minmax(0, 1fr); align-items: center; gap: .75rem;
+  background: var(--surface); color: var(--fg); border: 2px solid var(--line); border-radius: .5rem; padding: .55rem .7rem;
+}
+.lista-pontos button[aria-pressed="true"] { border-color: var(--acento); box-shadow: inset 0 0 0 2px var(--acento); }
+.lista-pontos .sigla { font-family: var(--fonte-titulo); font-weight: 700; background: var(--edificio); color: var(--edificio-fg); border-radius: .35rem; text-align: center; padding: .35rem .2rem; font-size: .85rem; }
+.lista-pontos .nome { font-weight: 700; }
+.lista-pontos .aqui { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.rota { background: var(--surface); border: 1px solid var(--line); border-radius: .6rem; padding: 1.1rem 1.25rem; display: grid; gap: 1rem; align-content: start; }
+.rota .campo { display: grid; gap: .35rem; min-width: 0; }
+.rota select { width: 100%; }
+.rota > * { min-width: 0; }
+.rota label { font-weight: 700; }
+.rota-texto { display: grid; gap: .75rem; max-width: 65ch; }
+.rota-texto .cabe { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem; }
+.rota-texto h3 { font-size: 1.15rem; }
+.rota-texto .dist { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 700; }
+.aviso { border-left: 4px solid var(--acento); padding: .5rem .9rem; background: var(--bg); border-radius: 0 .4rem .4rem 0; font-size: .95rem; }
+.aviso strong { display: block; }
+.acoes { display: flex; flex-wrap: wrap; gap: .5rem; }
+.descricao-ponto { display: grid; gap: .5rem; max-width: 65ch; }
+.descricao-ponto h3 { font-size: 1.15rem; }
+.descricao-ponto ul { margin: 0; padding-left: 1.2rem; }
+
+/* Placas */
+.intro { max-width: 65ch; display: grid; gap: .6rem; }
+.intro h2 { font-size: 1.6rem; }
+.grade-placas { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.25rem; }
+.placa {
+  background: #ffffff; color: #16213a; border: 3px solid #16213a; border-radius: .4rem; overflow: hidden;
+  display: grid; grid-template-rows: auto 1fr auto; break-inside: avoid;
+}
+.placa-topo { background: #16213a; color: #ffffff; text-align: center; font-family: var(--fonte-titulo); font-weight: 700; letter-spacing: .12em; padding: .6rem; font-size: 1.05rem; }
+.placa-topo .ponto-branco { display: inline-block; width: .8em; height: .8em; border-radius: 50%; background: #f2b705; margin-right: .5em; vertical-align: -1px; }
+.placa-corpo { padding: 1rem 1.1rem; display: grid; gap: .6rem; text-align: center; }
+.placa-corpo h3 { font-size: 1.3rem; }
+.placa-corpo .sigla { font-family: var(--fonte-titulo); font-size: 2.2rem; font-weight: 700; line-height: 1; }
+.placa-corpo .braille { font-size: 1.5rem; line-height: 1.3; letter-spacing: .08em; font-family: "Segoe UI Symbol", "Apple Symbols", "DejaVu Sans", sans-serif; word-break: break-word; }
+.placa-codigos { display: flex; justify-content: center; align-items: stretch; gap: 1rem; flex-wrap: wrap; margin-top: .4rem; }
+.moldura { border: 4px solid #16213a; border-radius: .4rem; padding: .5rem; display: grid; gap: .35rem; justify-items: center; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.moldura .qr { width: 132px; height: 132px; background: #fff; }
+.moldura .qr img, .moldura .qr canvas { width: 132px !important; height: 132px !important; image-rendering: pixelated; }
+.moldura.nfc { justify-content: center; align-content: center; min-width: 7.2rem; }
+.moldura.nfc svg { width: 3.8rem; height: 3.8rem; }
+.placa-rodape { border-top: 2px solid #16213a; padding: .55rem 1rem; font-size: .78rem; text-align: center; word-break: break-all; font-variant-numeric: tabular-nums; }
+.placa-rodape b { display: block; font-family: var(--fonte-titulo); letter-spacing: .05em; word-break: normal; }
+.caixa-info { background: var(--surface); border: 1px solid var(--line); border-radius: .6rem; padding: 1rem 1.25rem; display: grid; gap: .5rem; max-width: 65ch; }
+.caixa-info h3 { font-size: 1.05rem; }
+.caixa-info ol { margin: 0; padding-left: 1.2rem; display: grid; gap: .25rem; }
+.caixa-info code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; background: var(--bg); padding: .1rem .35rem; border-radius: .25rem; word-break: break-all; }
+
+/* Sobre */
+.sobre { display: grid; gap: 1.25rem; max-width: 65ch; }
+.sobre h2 { font-size: 1.6rem; }
+.sobre h3 { font-size: 1.15rem; margin-top: .25rem; }
+.sobre ul { margin: 0; padding-left: 1.2rem; display: grid; gap: .3rem; }
+.camadas { display: grid; gap: .75rem; }
+.camada { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: .8rem; align-items: start; }
+.camada svg { width: 2.6rem; height: 2.6rem; }
+.camada b { display: block; }
+
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+footer .in { max-width: 1100px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 1.25rem; display: grid; gap: .3rem; }
+
+@media print {
+  .topo, footer, .nao-imprimir { display: none !important; }
+  main { padding: 0; max-width: none; }
+  .grade-placas { grid-template-columns: 1fr 1fr; gap: 1cm; }
+  .placa { page-break-inside: avoid; }
+}
+</style>
+
+<a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="topo">
+  <div class="topo-in">
+    <a class="marca" href="#mapa" id="link-marca">
+      <svg class="marca-icone" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+        <rect x="4" y="4" width="32" height="32" rx="4" fill="none" stroke="currentColor" stroke-width="3"/>
+        <circle cx="13" cy="13" r="3" fill="currentColor"/><circle cx="13" cy="20" r="3" fill="currentColor"/><circle cx="20" cy="13" r="3" fill="currentColor"/>
+        <circle cx="27" cy="27" r="4.5" fill="#f2b705" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <div><h1>Campus que se deixa ler</h1><small>Mapa acessível da UnB Gama (FCTE)</small></div>
+    </a>
+    <nav class="nav" aria-label="Seções do site">
+      <a href="#mapa" data-vista="mapa">Mapa</a>
+      <a href="#placas" data-vista="placas">Placas e QR Codes</a>
+      <a href="#sobre" data-vista="sobre">Sobre</a>
+    </nav>
+    <div class="ajustes" role="group" aria-label="Ajustes de leitura">
+      <button type="button" id="fonte-menos" aria-label="Diminuir o tamanho da letra">A−</button>
+      <button type="button" id="fonte-mais" aria-label="Aumentar o tamanho da letra">A+</button>
+      <button type="button" id="contraste" aria-pressed="false">Alto contraste</button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo" tabindex="-1">
+
+  <!-- VISTA: MAPA -->
+  <section class="vista" id="vista-mapa" aria-labelledby="t-mapa">
+    <h2 id="t-mapa" class="sr-only">Mapa do campus</h2>
+
+    <div class="faixa-aqui" aria-live="polite">
+      <svg class="pino" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <path d="M16 30s10-10 10-17A10 10 0 0 0 6 13c0 7 10 17 10 17z" fill="#f2b705" stroke="currentColor" stroke-width="2"/>
+        <circle cx="16" cy="13" r="4" fill="currentColor"/>
+      </svg>
+      <div class="texto">
+        <div class="rotulo" id="aqui-rotulo">Você está aqui</div>
+        <strong id="aqui-nome">Escolha o ponto onde você está</strong>
+        <p id="aqui-ajuda">Ao ler o QR Code ou aproximar o celular da etiqueta NFC de uma placa, o ponto é marcado automaticamente.</p>
+      </div>
+      <div class="campo">
+        <label for="sel-origem" class="sr-only">Onde você está</label>
+        <select id="sel-origem"></select>
+      </div>
+    </div>
+
+    <div class="mapa-caixa">
+      <svg id="mapa" viewBox="130 80 720 680" role="img" aria-labelledby="mapa-titulo mapa-desc">
+        <title id="mapa-titulo">Mapa esquemático do campus Gama da UnB, com o norte para cima</title>
+        <desc id="mapa-desc">A rodovia DF-480 passa a oeste do campus. A Unidade de Ensino e Docência fica junto à rodovia, no lado oeste. A Unidade Acadêmica fica ao centro, a nordeste da UED, e o estacionamento grande fica a nordeste dela. O RU fica a leste da UAC, na ponta sul do estacionamento, e a quadra esportiva fica logo ao sul do RU. Os módulos do CEDIS ficam ao sul da UAC, ao lado do calçadão. Na parte sul do campus ficam os galpões do Lab Livre e, ao lado deles, o prédio do Laboratório de IA. A lista de pontos abaixo do mapa contém os mesmos lugares.</desc>
+        <defs>
+          <pattern id="hachura" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-10)">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="var(--via)" stroke-width="1.5"/>
+          </pattern>
+        </defs>
+        <!-- rodovia DF-480 e marginal -->
+        <line class="via" x1="300" y1="60" x2="-40" y2="720" stroke-width="12"/>
+        <line class="via" x1="380" y1="60" x2="40" y2="720" stroke-width="44"/>
+        <line x1="380" y1="60" x2="40" y2="720" stroke="var(--surface)" stroke-width="2" stroke-dasharray="14 12" fill="none"/>
+        <!-- terreno do campus -->
+        <polygon class="terreno" points="300,222 600,118 815,105 812,340 760,560 720,750 470,750 430,590 190,560"/>
+        <!-- vias internas -->
+        <path class="via" d="M 305 235 L 185 560" stroke-width="9"/>
+        <path class="via" d="M 305 235 L 350 195 L 600 125" stroke-width="9"/>
+        <path class="via" d="M 802 335 L 790 470 L 720 620 L 680 700" stroke-width="8"/>
+        <!-- estacionamento -->
+        <polygon data-id="estacionamento" class="ed-area" points="580,150 795,115 805,330 655,365 565,300" fill="url(#hachura)" stroke="var(--via)" stroke-width="1.5" style="fill:url(#hachura)"><title>Estacionamento</title></polygon>
+        <text class="rotulo-via" x="690" y="245" transform="rotate(-10 690 245)" text-anchor="middle">ESTACIONAMENTO</text>
+        <!-- quadra: área de terra em volta -->
+        <rect x="630" y="438" width="100" height="115" rx="3" fill="var(--via)" opacity=".35" transform="rotate(-8 680 495)"/>
+        <!-- calçadão -->
+        <path class="calcada" id="calcada" d="M 652 362 L 600 400 L 522 388 M 600 400 L 500 445 L 432 445 M 600 400 L 592 470 L 585 585 M 600 400 L 655 450"/>
+        <!-- edifícios -->
+        <g id="edificios">
+          <path class="ed" data-id="ued" fill-rule="evenodd" transform="rotate(-42 355 430)" d="M240 382 H470 V478 H240 Z M275 405 H315 V450 H275 Z M365 400 H405 V445 H365 Z"><title>UED – Unidade de Ensino e Docência</title></path>
+          <g class="ed" data-id="uac" transform="rotate(-38 545 305)">
+            <title>UAC – Unidade Acadêmica</title>
+            <path fill-rule="evenodd" d="M450 230 H640 V380 H450 Z M485 265 H605 V345 H485 Z"/>
+            <rect x="520" y="275" width="50" height="70"/>
+          </g>
+          <g class="ed" data-id="cedis" transform="rotate(-38 515 455)">
+            <title>CEDIS – módulos de projetos</title>
+            <rect x="480" y="435" width="28" height="22"/><rect x="512" y="432" width="28" height="22"/>
+            <rect x="495" y="462" width="28" height="22"/><rect x="528" y="460" width="28" height="22"/><rect x="545" y="435" width="22" height="22"/>
+          </g>
+          <rect class="ed" data-id="ru" x="598" y="364" width="115" height="64" transform="rotate(-32 655 396)"><title>RU – Restaurante Universitário</title></rect>
+          <rect class="ed" data-id="quadra" x="655" y="455" width="50" height="80" transform="rotate(-8 680 495)"><title>Quadra Esportiva</title></rect>
+          <rect class="ed" data-id="labia" x="600" y="558" width="50" height="165" transform="rotate(-8 625 640)"><title>Laboratório de IA</title></rect>
+          <g class="ed" data-id="lablivre" transform="rotate(-8 545 635)">
+            <title>Lab Livre</title>
+            <rect x="505" y="600" width="40" height="26"/><rect x="555" y="598" width="38" height="26"/>
+            <rect x="510" y="635" width="42" height="26"/><rect x="555" y="640" width="38" height="26"/>
+            <rect x="520" y="672" width="45" height="26"/><rect x="560" y="690" width="30" height="22"/>
+          </g>
+        </g>
+        <!-- rótulos e marcador (preenchidos pelo script) -->
+        <text class="rotulo-via" x="215" y="330" transform="rotate(-63 215 330)" text-anchor="middle">DF-480</text>
+        <text class="rotulo-via" x="820" y="130" text-anchor="end" font-size="11">N ↑</text>
+        <g id="rotulos"></g>
+        <g id="pino-mapa" class="pino-mapa" hidden></g>
+      </svg>
+      <div class="mapa-legenda" aria-hidden="true">
+        <span><i style="background:var(--edificio)"></i> Edifício</span>
+        <span><i style="background:var(--acento)"></i> Calçadão</span>
+        <span><i style="background:var(--via);opacity:.35"></i> Quadra: área em obras</span>
+        <span><i style="background:var(--terreno);border:1px solid var(--via)"></i> Área do campus</span>
+        <span><i style="background:var(--via)"></i> Via</span>
+      </div>
+    </div>
+
+    <div class="duas">
+      <div class="bloco">
+        <h2>Pontos do campus</h2>
+        <ul class="lista-pontos" id="lista-pontos"></ul>
+      </div>
+
+      <section class="rota" aria-labelledby="t-rota">
+        <h2 id="t-rota">Para onde você quer ir?</h2>
+        <div class="campo">
+          <label for="sel-destino">Destino</label>
+          <select id="sel-destino"></select>
+        </div>
+        <div class="rota-texto" id="rota-texto" aria-live="polite"></div>
+        <div class="acoes">
+          <button type="button" class="btn" id="ouvir-rota" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>Ouvir descrição</span>
+          </button>
+          <button type="button" class="btn sec" id="parar-audio" hidden>Parar</button>
+        </div>
+        <p class="aviso" id="aviso-audio" hidden>Este navegador não oferece leitura em voz. Use o leitor de tela do celular para ouvir a descrição.</p>
+        <div class="descricao-ponto" id="descricao-ponto"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- VISTA: PLACAS -->
+  <section class="vista" id="vista-placas" hidden aria-labelledby="t-placas">
+    <div class="intro">
+      <h2 id="t-placas">Placas "Você está aqui"</h2>
+      <p>Cada ponto do mapa recebe uma placa com o mesmo conteúdo: o nome do lugar em letras ampliadas e em braille, um QR Code dentro de uma moldura em relevo e uma área marcada para a etiqueta NFC. Os dois abrem este site já com o ponto marcado.</p>
+      <p>Os códigos abaixo são gerados a partir do endereço desta página, por isso continuam válidos se o site mudar de servidor: basta gerar as placas de novo.</p>
+    </div>
+
+    <div class="grade-placas" id="grade-placas"></div>
+
+    <div class="caixa-info nao-imprimir">
+      <h3>Como produzir a placa física</h3>
+      <ol>
+        <li>Imprima ou grave o QR Code com pelo menos 5 cm de lado, com margem branca em volta (zona de silêncio) e moldura em relevo para ser localizado pelo tato.</li>
+        <li>Grave a etiqueta NFC pelo próprio celular, com um registro do tipo URL contendo o mesmo endereço impresso no rodapé da placa.</li>
+        <li>Fixe a etiqueta NFC atrás da área marcada com o símbolo de aproximação, também contornada em relevo.</li>
+        <li>Instale a placa na altura e inclinação previstas na NBR 9050, junto ao mapa tátil do ponto.</li>
+      </ol>
+      <p>A transcrição em braille mostrada na placa é indicativa e deve ser conferida por um revisor de braille antes da produção.</p>
+    </div>
+  </section>
+
+  <!-- VISTA: SOBRE -->
+  <section class="vista sobre" id="vista-sobre" hidden aria-labelledby="t-sobre">
+    <h2 id="t-sobre">Um campus que se deixa ler</h2>
+    <p>Quem chega ao campus do Gama precisa descobrir sozinho onde ficam os prédios, as rampas, os elevadores e os banheiros acessíveis. Para uma pessoa cega ou com baixa visão, para quem usa cadeira de rodas ou tem mobilidade reduzida, a falta de uma sinalização integrada significa depender de terceiros a cada deslocamento. Este site é a parte digital de um mapa tátil do campus, pensado para que essa informação possa ser lida por todos.</p>
+
+    <h3>Três camadas, uma informação</h3>
+    <div class="camadas">
+      <div class="camada">
+        <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false"><rect x="5" y="5" width="30" height="30" rx="3" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="14" cy="14" r="3" fill="currentColor"/><circle cx="14" cy="22" r="3" fill="currentColor"/><circle cx="22" cy="14" r="3" fill="currentColor"/><circle cx="22" cy="30" r="3" fill="currentColor"/></svg>
+        <p><b>Tato</b> Mapa em relevo com título e legenda em braille, edifícios e rotas em textura, contraste de cor e letras ampliadas. Funciona sem celular, sem internet e sem energia.</p>
+      </div>
+      <div class="camada">
+        <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false"><rect x="6" y="6" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="23" y="6" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="6" y="23" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="10" y="10" width="3" height="3" fill="currentColor"/><rect x="27" y="10" width="3" height="3" fill="currentColor"/><rect x="10" y="27" width="3" height="3" fill="currentColor"/><path d="M23 23h4v4h-4zM30 23h4v4h-4zM26 30h4v4h-4z" fill="currentColor"/></svg>
+        <p><b>Aproximação e imagem</b> QR Code e etiqueta NFC, ambos dentro de molduras em relevo. Cada um cobre a falha do outro: o QR Code funciona em quase todo celular; o NFC dispensa enquadrar a câmera.</p>
+      </div>
+      <div class="camada">
+        <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false"><path d="M8 32V12l12-6 12 6v20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 20h12M14 26h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <p><b>Digital</b> Esta página: leve, com leitor de tela, bom contraste, linguagem simples e descrição das rotas em texto e em áudio. Pode ser atualizada quando um elevador quebra ou uma obra muda uma rota, sem trocar a placa.</p>
+      </div>
+    </div>
+
+    <h3>Estado atual</h3>
+    <p>Esta é a primeira versão do site, publicada como parte da entrega parcial. O levantamento em campo das rampas, elevadores, piso tátil e banheiros acessíveis ainda está em andamento e será incorporado às descrições de rota até a entrega final, em 25 de novembro de 2026. Até lá, as rotas descrevem a direção e a distância aproximada entre os pontos, não as condições de acessibilidade de cada trecho.</p>
+
+    <h3>Privacidade</h3>
+    <p>Este site não coleta dados de quem o acessa. Não há cadastro, cookies de rastreamento nem registro de localização. O ponto "você está aqui" vem apenas do endereço aberto pelo QR Code ou pela etiqueta NFC.</p>
+
+    <h3>Quem faz</h3>
+    <p>Grupo 9 da disciplina Humanidades e Cidadania (FGA0164), turma 02, 2026.2, UnB Gama (FCTE), com a professora Sandra Maria Faleiros Lima.</p>
+    <ul>
+      <li>Giovanna Ramos Ribeiro Bilhão</li>
+      <li>João Pedro Câmara Leão</li>
+      <li>Maria Lívia Aparecida</li>
+      <li>Maria Luiza Teixeira Duarte</li>
+      <li>Welder Rodrigues de Medeiros</li>
+      <li>Yago Silva Marinho</li>
+    </ul>
+
+    <h3>Base legal e técnica</h3>
+    <ul>
+      <li>Lei nº 13.146/2015 (Lei Brasileira de Inclusão)</li>
+      <li>ABNT NBR 9050:2020 (acessibilidade a edificações, mobiliário, espaços e equipamentos urbanos)</li>
+      <li>Diretrizes de Acessibilidade para Conteúdo Web (WCAG)</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="in">
+    <p>Mapa tátil do Campus UnB Gama (FCTE) com QR Code e NFC. Grupo 9, Humanidades e Cidadania, 2026.2.</p>
+    <p>O mapa é esquemático e não está em escala. Distâncias são aproximadas.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Dados ----------
+  // x, y: centro do ponto nas coordenadas do mapa (norte para cima, traçado sobre a imagem de satélite)
+  var PONTOS = [
+    { id: 'uac', sigla: 'UAC', nome: 'Unidade Acadêmica', x: 545, y: 305,
+      desc: 'Prédio principal do campus: salas de aula, laboratórios de informática, biblioteca e auditório.',
+      ref: 'Fica ao centro do campus, a nordeste da UED, entre ela e o estacionamento.' },
+    { id: 'ued', sigla: 'UED', nome: 'Unidade de Ensino e Docência', x: 355, y: 430,
+      desc: 'Salas de professores, secretaria, laboratórios, diretoria e coordenação acadêmica.',
+      ref: 'É o prédio mais próximo da DF-480, no lado oeste do campus.' },
+    { id: 'cedis', sigla: 'CEDIS', nome: 'Módulos do CEDIS', x: 515, y: 455,
+      desc: 'Conjunto de módulos onde funcionam projetos de software e equipes de estudantes.',
+      ref: 'Fica ao sul da Unidade Acadêmica, ao lado do calçadão que leva à UED.' },
+    { id: 'ru', sigla: 'RU', nome: 'Restaurante Universitário', x: 655, y: 396,
+      desc: 'Restaurante Universitário, com refeições para a comunidade acadêmica.',
+      ref: 'Fica a leste da Unidade Acadêmica, na ponta sul do estacionamento, de frente para o calçadão central.' },
+    { id: 'quadra', sigla: 'QUADRA', nome: 'Quadra Esportiva', x: 680, y: 495,
+      desc: 'Quadra poliesportiva descoberta, com arquibancada ao lado.',
+      ref: 'Fica logo ao sul do RU, do lado leste do calçadão.' },
+    { id: 'lablivre', sigla: 'LAB', nome: 'Lab Livre', x: 545, y: 640,
+      desc: 'Laboratório aberto de fabricação e prototipagem, em um conjunto de galpões.',
+      ref: 'Fica na parte sul do campus, no fim do calçadão central.' },
+    { id: 'labia', sigla: 'IA', nome: 'Laboratório de IA', x: 625, y: 640,
+      desc: 'Laboratório de Inteligência Artificial da UnB, no prédio comprido ao lado dos galpões do Lab Livre.',
+      ref: 'Fica na parte sul do campus, a leste do Lab Livre.' },
+    { id: 'estacionamento', sigla: 'EST', nome: 'Estacionamento', x: 690, y: 215,
+      desc: 'Área de chegada de veículos e estacionamento principal. É o primeiro ponto para quem chega de carro ou de transporte por aplicativo.',
+      ref: 'Fica a nordeste da Unidade Acadêmica, com acesso pela via que sai da DF-480. O RU fica na sua ponta sul.' }
+  ];
+
+  // Observações de trajeto por par de pontos (sem direção)
+  var TRECHOS = {
+    'uac|ued': 'O caminho segue pelo calçadão central, que sai da frente da Unidade Acadêmica e passa pelos módulos do CEDIS até a UED.',
+    'cedis|uac': 'Os módulos do CEDIS ficam logo ao sul da Unidade Acadêmica, junto ao calçadão.',
+    'cedis|ued': 'Os módulos do CEDIS ficam no caminho entre a UED e a Unidade Acadêmica.',
+    'ru|uac': 'O RU fica ao lado da Unidade Acadêmica, do outro lado do calçadão central, na ponta sul do estacionamento.',
+    'estacionamento|uac': 'O estacionamento fica ao lado nordeste da Unidade Acadêmica; o calçadão liga os dois.',
+    'estacionamento|ru': 'O RU fica na ponta sul do estacionamento.',
+    'quadra|ru': 'A quadra fica logo atrás do RU, no sentido sul.',
+    'quadra|uac': 'A quadra fica atrás do RU, do lado leste do calçadão central.',
+    'lablivre|uac': 'Pelo calçadão central, siga para o sul, deixando os módulos do CEDIS à direita, até os galpões do Lab Livre.',
+    'lablivre|ued': 'Siga pelo calçadão até o centro do campus e depois para o sul, até os galpões do Lab Livre.',
+    'labia|lablivre': 'O Laboratório de IA fica no prédio comprido ao lado dos galpões do Lab Livre.',
+    'labia|quadra': 'O Laboratório de IA fica ao sul da quadra, pelo caminho que desce ao lado dela.',
+    'labia|uac': 'Pelo calçadão central, siga para o sul; o prédio do Laboratório de IA fica depois da quadra, à esquerda do Lab Livre.'
+  };
+  var TRECHO_PADRAO = 'O percurso usa o calçadão central do campus.';
+  var AVISO_LEVANTAMENTO = 'Rampas, piso tátil, elevadores e obstáculos deste trecho ainda estão em levantamento em campo. Confirme as condições no local.';
+  var METROS_POR_UNIDADE = 0.44;
+
+  // ---------- Geometria do mapa ----------
+  PONTOS.forEach(function (p) { p.tx = p.x; p.ty = p.y; });
+  var porId = {};
+  PONTOS.forEach(function (p) { porId[p.id] = p; });
+
+  function distanciaM(a, b) {
+    var d = Math.hypot(a.tx - b.tx, a.ty - b.ty) * METROS_POR_UNIDADE;
+    return Math.max(10, Math.round(d / 10) * 10);
+  }
+  function direcao(a, b) {
+    var ang = Math.atan2(-(b.ty - a.ty), b.tx - a.tx) * 180 / Math.PI; // 0 = leste, 90 = norte
+    var n = ['leste', 'nordeste', 'norte', 'noroeste', 'oeste', 'sudoeste', 'sul', 'sudeste'];
+    return n[Math.round(((ang + 360) % 360) / 45) % 8];
+  }
+  function trecho(a, b) {
+    var k = [a.id, b.id].sort().join('|');
+    return TRECHOS[k] || TRECHO_PADRAO;
+  }
+
+  // ---------- Braille (transcrição indicativa, Grafia Braille para a Língua Portuguesa) ----------
+  var BR = { a:'⠁',b:'⠃',c:'⠉',d:'⠙',e:'⠑',f:'⠋',g:'⠛',h:'⠓',i:'⠊',j:'⠚',k:'⠅',l:'⠇',m:'⠍',n:'⠝',o:'⠕',p:'⠏',q:'⠟',r:'⠗',s:'⠎',t:'⠞',u:'⠥',v:'⠧',w:'⠺',x:'⠭',y:'⠽',z:'⠵',
+    'á':'⠷','â':'⠡','ã':'⠜','à':'⠫','é':'⠿','ê':'⠣','í':'⠌','ó':'⠬','ô':'⠹','õ':'⠪','ú':'⠾','ç':'⠯',' ':'⠀','-':'⠤',',':'⠂','.':'⠄' };
+  function braille(txt) {
+    var out = '';
+    for (var i = 0; i < txt.length; i++) {
+      var ch = txt[i], low = ch.toLowerCase();
+      if (ch !== low && BR[low]) out += '⠨';
+      out += BR[low] || '';
+    }
+    return out;
+  }
+
+  // ---------- Elementos ----------
+  var $ = function (s) { return document.querySelector(s); };
+  var selOrigem = $('#sel-origem'), selDestino = $('#sel-destino'), lista = $('#lista-pontos');
+  var rotaTexto = $('#rota-texto'), descPonto = $('#descricao-ponto');
+  var aquiNome = $('#aqui-nome'), aquiAjuda = $('#aqui-ajuda'), aquiRotulo = $('#aqui-rotulo');
+  var pino = $('#pino-mapa'), rotulos = $('#rotulos');
+  var btnOuvir = $('#ouvir-rota'), btnParar = $('#parar-audio'), avisoAudio = $('#aviso-audio');
+
+  var origem = null, destino = null;
+
+  // Rótulos do mapa
+  PONTOS.forEach(function (p) {
+    var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('class', 'rotulo-mapa sigla');
+    t.id = 'rot-' + p.id;
+    t.setAttribute('x', p.tx); t.setAttribute('y', p.ty + 7);
+    t.setAttribute('text-anchor', 'middle');
+    t.textContent = p.id === 'estacionamento' ? '' : (p.id === 'labia' ? 'LAB IA' : p.sigla);
+    rotulos.appendChild(t);
+  });
+
+  // Lista de pontos e selects
+  var opcaoVazia = '<option value="">Escolha um ponto</option>';
+  selOrigem.innerHTML = opcaoVazia + PONTOS.map(function (p) { return '<option value="' + p.id + '">' + p.sigla + ' – ' + p.nome + '</option>'; }).join('');
+  PONTOS.forEach(function (p) {
+    var li = document.createElement('li');
+    var b = document.createElement('button');
+    b.type = 'button'; b.dataset.id = p.id; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = '<span class="sigla" aria-hidden="true">' + p.sigla + '</span><span><span class="nome">' + p.nome + '</span><br><span class="aqui" hidden>Você está aqui</span></span>';
+    b.addEventListener('click', function () {
+      if (origem && origem.id !== p.id) { setDestino(p.id); }
+      else { setDestino(null); mostrarPonto(p); }
+      rotaTexto.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    li.appendChild(b); lista.appendChild(li);
+  });
+
+  function preencherDestinos() {
+    selDestino.innerHTML = opcaoVazia + PONTOS.filter(function (p) { return !origem || p.id !== origem.id; })
+      .map(function (p) { return '<option value="' + p.id + '">' + p.sigla + ' – ' + p.nome + '</option>'; }).join('');
+    selDestino.value = destino ? destino.id : '';
+  }
+
+  function setOrigem(id, viaHash) {
+    pararAudio();
+    origem = porId[id] || null;
+    selOrigem.value = origem ? origem.id : '';
+    PONTOS.forEach(function (p) {
+      var r = document.getElementById('rot-' + p.id);
+      r.setAttribute('y', origem && origem.id === p.id ? p.ty + 32 : p.ty + 7);
+    });
+    lista.querySelectorAll('button').forEach(function (b) {
+      var ehAqui = origem && b.dataset.id === origem.id;
+      b.querySelector('.aqui').hidden = !ehAqui;
+    });
+    if (origem) {
+      aquiRotulo.textContent = 'Você está aqui';
+      aquiNome.textContent = origem.nome + ' (' + origem.sigla + ')';
+      aquiAjuda.textContent = origem.ref;
+      pino.removeAttribute('hidden');
+      pino.innerHTML = '<circle class="anel" cx="' + origem.tx + '" cy="' + origem.ty + '" r="18"/>' +
+        '<circle class="ponto" cx="' + origem.tx + '" cy="' + origem.ty + '" r="9"/>' +
+        '<text x="' + origem.tx + '" y="' + (origem.ty - 20) + '" text-anchor="middle">Você está aqui</text>';
+      document.title = 'Você está aqui: ' + origem.sigla + ' · Campus que se deixa ler';
+      if (!viaHash && location.hash.slice(1) !== origem.id) history.replaceState(null, '', '#' + origem.id);
+    } else {
+      aquiRotulo.textContent = 'Onde você está?';
+      aquiNome.textContent = 'Escolha o ponto onde você está';
+      aquiAjuda.textContent = 'Ao ler o QR Code ou aproximar o celular da etiqueta NFC de uma placa, o ponto é marcado automaticamente.';
+      pino.setAttribute('hidden', ''); pino.innerHTML = '';
+      document.title = 'Campus que se deixa ler';
+    }
+    if (destino && origem && destino.id === origem.id) destino = null;
+    preencherDestinos();
+    renderRota();
+  }
+
+  function setDestino(id) {
+    pararAudio();
+    destino = porId[id] || null;
+    selDestino.value = destino ? destino.id : '';
+    renderRota();
+  }
+
+  function marcarEdificios() {
+    document.querySelectorAll('#mapa [data-id]').forEach(function (e) {
+      e.classList.toggle('destino', !!(destino && e.dataset.id === destino.id));
+    });
+    lista.querySelectorAll('button').forEach(function (b) {
+      b.setAttribute('aria-pressed', destino && b.dataset.id === destino.id ? 'true' : 'false');
+    });
+  }
+
+  function textoRota() {
+    if (!origem || !destino) return '';
+    var d = distanciaM(origem, destino);
+    return destino.nome + ' fica a cerca de ' + d + ' metros a ' + direcao(origem, destino) + ' de onde você está. ' +
+      trecho(origem, destino) + ' ' + destino.ref;
+  }
+
+  function renderRota() {
+    marcarEdificios();
+    descPonto.innerHTML = '';
+    if (!origem) {
+      rotaTexto.innerHTML = '<p>Primeiro escolha onde você está, no alto da página. Depois escolha o destino para ouvir ou ler o caminho.</p>';
+      btnOuvir.disabled = true; return;
+    }
+    if (!destino) {
+      rotaTexto.innerHTML = '<p>Escolha um destino na lista ou no mapa para ler o caminho a partir de <strong>' + origem.nome + '</strong>.</p>';
+      mostrarPonto(origem);
+      btnOuvir.disabled = false; return;
+    }
+    var d = distanciaM(origem, destino);
+    rotaTexto.innerHTML =
+      '<div class="cabe"><h3>' + origem.sigla + ' → ' + destino.nome + '</h3><span class="dist">aprox. ' + d + ' m · sentido ' + direcao(origem, destino) + '</span></div>' +
+      '<p>' + textoRota() + '</p>' +
+      '<p class="aviso"><strong>Trecho em levantamento</strong>' + AVISO_LEVANTAMENTO + '</p>';
+    btnOuvir.disabled = false;
+  }
+
+  function mostrarPonto(p) {
+    descPonto.innerHTML = '<h3>' + p.nome + ' (' + p.sigla + ')</h3><p>' + p.desc + '</p><p>' + p.ref + '</p>';
+  }
+
+  // ---------- Áudio (síntese de voz do próprio aparelho) ----------
+  var sintese = 'speechSynthesis' in window ? window.speechSynthesis : null;
+  if (!sintese) { btnOuvir.hidden = true; avisoAudio.hidden = false; }
+  function vozPt() {
+    if (!sintese) return null;
+    var vozes = sintese.getVoices();
+    return vozes.filter(function (v) { return /^pt(-|_)BR/i.test(v.lang); })[0] || vozes.filter(function (v) { return /^pt/i.test(v.lang); })[0] || null;
+  }
+  function falar(txt) {
+    if (!sintese) return;
+    sintese.cancel();
+    var u = new SpeechSynthesisUtterance(txt);
+    u.lang = 'pt-BR'; u.rate = 0.95;
+    var v = vozPt(); if (v) u.voice = v;
+    u.onend = u.onerror = function () { btnOuvir.setAttribute('aria-pressed', 'false'); btnParar.hidden = true; };
+    btnOuvir.setAttribute('aria-pressed', 'true'); btnParar.hidden = false;
+    sintese.speak(u);
+  }
+  function pararAudio() {
+    if (sintese) sintese.cancel();
+    btnOuvir.setAttribute('aria-pressed', 'false'); btnParar.hidden = true;
+  }
+  btnOuvir.addEventListener('click', function () {
+    if (btnOuvir.getAttribute('aria-pressed') === 'true') { pararAudio(); return; }
+    var txt;
+    if (origem && destino) txt = 'Você está em ' + origem.nome + '. ' + textoRota() + ' Atenção: ' + AVISO_LEVANTAMENTO;
+    else if (origem) txt = 'Você está em ' + origem.nome + '. ' + origem.desc + ' ' + origem.ref + ' Escolha um destino para ouvir o caminho.';
+    else return;
+    falar(txt);
+  });
+  btnParar.addEventListener('click', pararAudio);
+
+  // ---------- Interações ----------
+  selOrigem.addEventListener('change', function () { setOrigem(selOrigem.value); });
+  selDestino.addEventListener('change', function () { setDestino(selDestino.value); });
+  document.querySelectorAll('#mapa [data-id]').forEach(function (e) {
+    e.addEventListener('click', function () {
+      var id = e.dataset.id;
+      if (origem && origem.id !== id) setDestino(id);
+      else if (!origem) setOrigem(id);
+      else { setDestino(null); }
+    });
+  });
+
+  // ---------- Ajustes de leitura ----------
+  var root = document.documentElement;
+  function lerPref(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function gravarPref(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var fonte = parseInt(lerPref('fonte') || '1', 10); if (!(fonte >= 1 && fonte <= 3)) fonte = 1;
+  function aplicarFonte() { root.setAttribute('data-fonte', String(fonte)); gravarPref('fonte', String(fonte)); }
+  aplicarFonte();
+  $('#fonte-mais').addEventListener('click', function () { if (fonte < 3) { fonte++; aplicarFonte(); } });
+  $('#fonte-menos').addEventListener('click', function () { if (fonte > 1) { fonte--; aplicarFonte(); } });
+  var btnContraste = $('#contraste');
+  function aplicarContraste(on) {
+    if (on) root.setAttribute('data-contraste', 'alto'); else root.removeAttribute('data-contraste');
+    btnContraste.setAttribute('aria-pressed', on ? 'true' : 'false');
+    gravarPref('contraste', on ? '1' : '0');
+  }
+  aplicarContraste(lerPref('contraste') === '1');
+  btnContraste.addEventListener('click', function () { aplicarContraste(btnContraste.getAttribute('aria-pressed') !== 'true'); });
+
+  // ---------- Placas ----------
+  var placasGeradas = false;
+  function urlPonto(id) { return location.origin + location.pathname + '#' + id; }
+  function gerarPlacas() {
+    if (placasGeradas) return;
+    placasGeradas = true;
+    var grade = $('#grade-placas');
+    PONTOS.forEach(function (p) {
+      var art = document.createElement('article');
+      art.className = 'placa';
+      art.setAttribute('aria-label', 'Placa do ponto ' + p.nome);
+      art.innerHTML =
+        '<div class="placa-topo"><span class="ponto-branco" aria-hidden="true"></span>VOCÊ ESTÁ AQUI</div>' +
+        '<div class="placa-corpo">' +
+          '<h3>' + p.nome + '</h3>' +
+          '<div class="sigla">' + p.sigla + '</div>' +
+          '<div class="braille" aria-hidden="true">' + braille(p.sigla) + '<br>' + braille(p.nome) + '</div>' +
+          '<div class="placa-codigos">' +
+            '<div class="moldura"><div class="qr" id="qr-' + p.id + '"></div><span>QR Code</span></div>' +
+            '<div class="moldura nfc"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">' +
+              '<rect x="12" y="4" width="24" height="40" rx="4" fill="none" stroke="#16213a" stroke-width="3"/>' +
+              '<path d="M20 20a6 6 0 0 1 8 0M17 15.5a10 10 0 0 1 14 0" fill="none" stroke="#16213a" stroke-width="3" stroke-linecap="round"/>' +
+              '<circle cx="24" cy="25" r="2.5" fill="#16213a"/><path d="M20 38h8" stroke="#16213a" stroke-width="3" stroke-linecap="round"/>' +
+            '</svg><span>Aproxime o celular</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="placa-rodape"><b>MAPA ACESSÍVEL · UnB GAMA</b>' + urlPonto(p.id) + '</div>';
+      grade.appendChild(art);
+      try {
+        new QRCode(document.getElementById('qr-' + p.id), {
+          text: urlPonto(p.id), width: 132, height: 132, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H
+        });
+        var img = art.querySelector('.qr img'); if (img) img.alt = 'QR Code que abre este mapa com o ponto ' + p.sigla + ' marcado';
+      } catch (e) {
+        document.getElementById('qr-' + p.id).textContent = 'QR Code indisponível: gere a partir do endereço abaixo.';
+      }
+    });
+  }
+
+  // ---------- Rotas por hash ----------
+  var VISTAS = ['mapa', 'placas', 'sobre'];
+  function mostrarVista(v) {
+    VISTAS.forEach(function (n) { document.getElementById('vista-' + n).hidden = (n !== v); });
+    document.querySelectorAll('.nav a').forEach(function (a) {
+      if (a.dataset.vista === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    if (v === 'placas') gerarPlacas();
+  }
+  function rotear() {
+    var h = (location.hash || '').replace(/^#/, '').toLowerCase();
+    if (h === 'conteudo') return;
+    if (h === 'placas' || h === 'sobre') { pararAudio(); mostrarVista(h); window.scrollTo(0, 0); return; }
+    mostrarVista('mapa');
+    if (porId[h]) { setOrigem(h, true); }
+    else if (h === 'mapa' || h === '') { if (origem) history.replaceState(null, '', '#' + origem.id); else setOrigem(null, true); }
+  }
+  window.addEventListener('hashchange', rotear);
+  if (sintese) sintese.onvoiceschanged = function () {};
+  rotear();
+})();
+</script>
+
+</body></html>
